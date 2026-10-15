@@ -67,8 +67,8 @@ const getAvatarBg = (name: string) => {
 };
 
 export const KanbanCard: React.FC<KanbanCardProps> = ({ lead, onEdit, isOverlay = false }) => {
-  const cardTheme = useCRMStore((s) => s.cardTheme);
-  const isDark = cardTheme === 'dark';
+  const theme = useCRMStore((s) => s.theme);
+  const isDark = theme === 'dark';
 
   const {
     attributes,
@@ -138,9 +138,9 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ lead, onEdit, isOverlay 
             </div>
           )}
 
-          <div>
+          <div className="min-w-0">
             <h4
-              className={`font-bold text-sm leading-snug transition-colors ${
+              className={`font-bold text-sm leading-snug transition-colors truncate ${
                 isDark
                   ? 'text-white group-hover:text-indigo-400'
                   : 'text-slate-900 group-hover:text-indigo-600'
@@ -148,8 +148,8 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ lead, onEdit, isOverlay 
             >
               {lead.name}
             </h4>
-            <p className="text-[11px] font-medium text-slate-400">
-              {lead.title || 'Face Badge'}
+            <p className="text-[11px] font-medium text-slate-400 truncate max-w-[160px]">
+              {lead.email || lead.title || 'facebadge@gmail.com'}
             </p>
           </div>
         </div>

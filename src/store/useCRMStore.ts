@@ -13,7 +13,7 @@ export interface CRMStoreState {
   selectedLeadId: string | null;
   isLeadModalOpen: boolean;
   isActivityDrawerOpen: boolean;
-  cardTheme: 'dark' | 'light';
+  theme: 'dark' | 'light';
 }
 
 /**
@@ -35,8 +35,8 @@ export interface CRMStoreActions {
   closeLeadModal: () => void;
   toggleActivityDrawer: () => void;
   setActivityDrawerOpen: (isOpen: boolean) => void;
-  toggleCardTheme: () => void;
-  setCardTheme: (theme: 'dark' | 'light') => void;
+  toggleTheme: () => void;
+  setTheme: (theme: 'dark' | 'light') => void;
 
   // Reset / Seeding
   resetToDefaultData: () => void;
@@ -63,7 +63,7 @@ export const useCRMStore = create<CRMStore>()(
       selectedLeadId: null,
       isLeadModalOpen: false,
       isActivityDrawerOpen: false,
-      cardTheme: 'dark',
+      theme: 'dark',
 
       // Actions
       addLead: (leadInput) => {
@@ -209,17 +209,28 @@ export const useCRMStore = create<CRMStore>()(
         set({ isActivityDrawerOpen: isOpen });
       },
 
-      toggleCardTheme: () => {
-        set((state) => ({
-          cardTheme: state.cardTheme === 'dark' ? 'light' : 'dark',
-        }));
+      toggleTheme: () => {
+        const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
+        if (typeof document !== 'undefined') {
+          document.documentElement.classList.remove('dark', 'light');
+          document.documentElement.classList.add(nextTheme);
+        }
+        set({ theme: nextTheme });
       },
 
-      setCardTheme: (theme) => {
-        set({ cardTheme: theme });
+      setTheme: (theme) => {
+        if (typeof document !== 'undefined') {
+          document.documentElement.classList.remove('dark', 'light');
+          document.documentElement.classList.add(theme);
+        }
+        set({ theme });
       },
 
       resetToDefaultData: () => {
+        if (typeof document !== 'undefined') {
+          document.documentElement.classList.remove('light');
+          document.documentElement.classList.add('dark');
+        }
         set({
           leads: INITIAL_LEADS,
           activityLogs: INITIAL_ACTIVITY_LOGS,
@@ -227,22 +238,27 @@ export const useCRMStore = create<CRMStore>()(
           selectedLeadId: null,
           isLeadModalOpen: false,
           isActivityDrawerOpen: false,
-          cardTheme: 'dark',
+          theme: 'dark',
         });
       },
     }),
     {
       name: 'kanban-crm-storage-v1',
       storage: createJSONStorage(() => localStorage),
-      // Persist leads, activity logs, and cardTheme; reset transient UI modals
+      // Persist leads, activity logs, and theme; reset transient UI modals
       partialize: (state) => ({
         leads: state.leads,
         activityLogs: state.activityLogs,
         filters: state.filters,
-        cardTheme: state.cardTheme,
+        theme: state.theme,
       }),
-      // Fallback hydration guard: if localStorage is missing or array is empty, seed mock data
+      // Fallback hydration guard: sync HTML class and seed mock data if empty
       onRehydrateStorage: () => (state) => {
+        const currentTheme = state?.theme || 'dark';
+        if (typeof document !== 'undefined') {
+          document.documentElement.classList.remove('dark', 'light');
+          document.documentElement.classList.add(currentTheme);
+        }
         if (!state || !state.leads || state.leads.length === 0) {
           useCRMStore.setState({
             leads: INITIAL_LEADS,

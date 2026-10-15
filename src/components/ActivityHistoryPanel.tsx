@@ -55,6 +55,8 @@ const getNodeIcon = (action: string, badgeColor?: string) => {
 
 export const ActivityHistoryPanel: React.FC<ActivityHistoryPanelProps> = ({ onClose }) => {
   const activityLogs = useCRMStore((s) => s.activityLogs);
+  const theme = useCRMStore((s) => s.theme);
+  const isDark = theme === 'dark';
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -66,19 +68,47 @@ export const ActivityHistoryPanel: React.FC<ActivityHistoryPanelProps> = ({ onCl
 
       {/* Slide-over Drawer Panel */}
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10 pointer-events-none">
-        <div className="w-screen max-w-sm sm:max-w-md bg-[#0E1526] border-l border-white/[0.08] shadow-2xl flex flex-col h-full pointer-events-auto">
+        <div
+          className={`w-screen max-w-sm sm:max-w-md shadow-2xl flex flex-col h-full pointer-events-auto border-l transition-colors ${
+            isDark
+              ? 'bg-[#0E1526] border-white/[0.08] text-white'
+              : 'bg-white border-slate-200 text-slate-900'
+          }`}
+        >
           {/* Fixed Drawer Header */}
-          <div className="flex items-center justify-between p-5 border-b border-white/[0.08] flex-shrink-0 bg-[#0E1526]">
+          <div
+            className={`flex items-center justify-between p-5 border-b flex-shrink-0 ${
+              isDark
+                ? 'bg-[#0E1526] border-white/[0.08]'
+                : 'bg-white border-slate-200'
+            }`}
+          >
             <div className="flex items-center space-x-2.5">
-              <h3 className="text-base font-bold text-white tracking-tight">Activity History</h3>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <h3
+                className={`text-base font-bold tracking-tight ${
+                  isDark ? 'text-white' : 'text-slate-900'
+                }`}
+              >
+                Activity History
+              </h3>
+              <span
+                className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                  isDark
+                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                    : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                }`}
+              >
                 {activityLogs.length}
               </span>
             </div>
             {onClose && (
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                className={`p-1.5 rounded-lg transition-colors ${
+                  isDark
+                    ? 'text-slate-400 hover:text-white hover:bg-white/5'
+                    : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                }`}
                 aria-label="Close activity history"
               >
                 <X className="w-4 h-4" />
@@ -89,7 +119,11 @@ export const ActivityHistoryPanel: React.FC<ActivityHistoryPanelProps> = ({ onCl
           {/* Timeline entries with ISOLATED scrolling */}
           <div className="flex-1 overflow-y-auto p-5 space-y-6 relative overscroll-contain">
             {/* Continuous vertical connecting line */}
-            <div className="absolute left-[33px] top-8 bottom-8 w-[2px] bg-slate-800 pointer-events-none" />
+            <div
+              className={`absolute left-[33px] top-8 bottom-8 w-[2px] pointer-events-none ${
+                isDark ? 'bg-slate-800' : 'bg-slate-200'
+              }`}
+            />
 
             {activityLogs.map((log) => {
               const { bg, icon } = getNodeIcon(log.action, log.badgeColor);
@@ -98,17 +132,27 @@ export const ActivityHistoryPanel: React.FC<ActivityHistoryPanelProps> = ({ onCl
                 <div key={log.id} className="relative flex items-start space-x-3.5 group">
                   {/* Colored Circular Node */}
                   <div
-                    className={`relative z-10 w-7 h-7 rounded-full flex items-center justify-center shadow-md flex-shrink-0 ring-4 ring-[#0E1526] ${bg}`}
+                    className={`relative z-10 w-7 h-7 rounded-full flex items-center justify-center shadow-md flex-shrink-0 ring-4 ${
+                      isDark ? 'ring-[#0E1526]' : 'ring-white'
+                    } ${bg}`}
                   >
                     {icon}
                   </div>
 
                   {/* Text details */}
                   <div className="flex-1 min-w-0 pt-0.5">
-                    <span className="text-[11px] font-medium text-slate-400 block mb-0.5">
+                    <span
+                      className={`text-[11px] font-medium block mb-0.5 ${
+                        isDark ? 'text-slate-400' : 'text-slate-500'
+                      }`}
+                    >
                       {formatRelativeTime(log.timestamp)}
                     </span>
-                    <p className="text-xs font-normal text-slate-200 leading-snug break-words">
+                    <p
+                      className={`text-xs font-normal leading-snug break-words ${
+                        isDark ? 'text-slate-200' : 'text-slate-800'
+                      }`}
+                    >
                       {log.description}
                     </p>
                   </div>

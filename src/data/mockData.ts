@@ -260,4 +260,15 @@ export const INITIAL_ACTIVITY_LOGS: ActivityLog[] = [
     author: 'Matina',
     badgeColor: 'rose',
   },
+  
+  {
+    id: 'act-7',
+    leadId: 'lead-2',
+    leadName: 'Manina',
+    action: 'STAGE_CHANGED',
+    description: 'Micro-copy workflow executed for pipeline review',
+    timestamp: new Date(Date.now() - 1000 * 60 * 180).toISOString(), // 3 hours ago
+    author: 'Matina',
+    badgeColor: 'rose',
+  },
 ];

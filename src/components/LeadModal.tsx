@@ -19,6 +19,8 @@ export const LeadModal: React.FC<LeadModalProps> = ({
   const addLead = useCRMStore((s) => s.addLead);
   const updateLead = useCRMStore((s) => s.updateLead);
   const deleteLead = useCRMStore((s) => s.deleteLead);
+  const theme = useCRMStore((s) => s.theme);
+  const isDark = theme === 'dark';
 
   const existingLead = leadId ? leads.find((l) => l.id === leadId) : null;
 
@@ -95,17 +97,43 @@ export const LeadModal: React.FC<LeadModalProps> = ({
     }
   };
 
+  const inputClass = isDark
+    ? 'bg-slate-900 border border-white/10 text-white placeholder-slate-500 focus:border-indigo-500'
+    : 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:bg-white';
+
+  const labelClass = `block text-xs font-semibold uppercase tracking-wider mb-1 ${
+    isDark ? 'text-slate-300' : 'text-slate-600'
+  }`;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-lg bg-[#0F172A] border border-white/10 rounded-2xl shadow-2xl p-6 text-slate-100">
+      <div
+        className={`relative w-full max-w-lg rounded-2xl p-6 shadow-2xl transition-colors ${
+          isDark
+            ? 'bg-[#0F172A] border border-white/10 text-slate-100'
+            : 'bg-white border border-slate-200 text-slate-900 shadow-2xl'
+        }`}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-white/10">
-          <h2 className="text-lg font-bold text-white">
+        <div
+          className={`flex items-center justify-between pb-4 border-b ${
+            isDark ? 'border-white/10' : 'border-slate-200'
+          }`}
+        >
+          <h2
+            className={`text-lg font-bold ${
+              isDark ? 'text-white' : 'text-slate-900'
+            }`}
+          >
             {existingLead ? 'Edit Sales Lead' : 'Create New Lead'}
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+            className={`p-1.5 rounded-lg transition-colors ${
+              isDark
+                ? 'text-slate-400 hover:text-white hover:bg-white/5'
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+            }`}
           >
             <X className="w-5 h-5" />
           </button>
@@ -114,9 +142,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-              Lead / Contact Name
-            </label>
+            <label className={labelClass}>Lead / Contact Name</label>
             <div className="relative">
               <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -125,29 +151,25 @@ export const LeadModal: React.FC<LeadModalProps> = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Sangili or Siela"
-                className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+                className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${inputClass}`}
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-                Badge / Subtitle
-              </label>
+              <label className={labelClass}>Badge / Subtitle</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Face Badge"
-                className="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+                className={`w-full px-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${inputClass}`}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-                Deal Value ($)
-              </label>
+              <label className={labelClass}>Deal Value ($)</label>
               <div className="relative">
                 <DollarSign className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -157,7 +179,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
                   required
                   value={dealValue}
                   onChange={(e) => setDealValue(Number(e.target.value))}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500 font-semibold text-emerald-400"
+                  className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none font-semibold text-emerald-500 ${inputClass}`}
                 />
               </div>
             </div>
@@ -165,13 +187,11 @@ export const LeadModal: React.FC<LeadModalProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-                Pipeline Stage
-              </label>
+              <label className={labelClass}>Pipeline Stage</label>
               <select
                 value={stage}
                 onChange={(e) => setStage(e.target.value as StageId)}
-                className="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+                className={`w-full px-3 py-2 rounded-xl text-sm focus:outline-none transition-all cursor-pointer ${inputClass}`}
               >
                 {PIPELINE_STAGES.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -182,13 +202,11 @@ export const LeadModal: React.FC<LeadModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-                Assigned Owner
-              </label>
+              <label className={labelClass}>Assigned Owner</label>
               <select
                 value={assignedOwner}
                 onChange={(e) => setAssignedOwner(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+                className={`w-full px-3 py-2 rounded-xl text-sm focus:outline-none transition-all cursor-pointer ${inputClass}`}
               >
                 <option value="Sangili">Sangili</option>
                 <option value="Matina">Matina</option>
@@ -199,9 +217,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-              Company
-            </label>
+            <label className={labelClass}>Company</label>
             <div className="relative">
               <Building className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -209,15 +225,13 @@ export const LeadModal: React.FC<LeadModalProps> = ({
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
                 placeholder="Enterprise Corp"
-                className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+                className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${inputClass}`}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-              Email
-            </label>
+            <label className={labelClass}>Email</label>
             <div className="relative">
               <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -225,16 +239,14 @@ export const LeadModal: React.FC<LeadModalProps> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="client@company.com"
-                className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+                className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${inputClass}`}
               />
             </div>
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-              Tags / Badges
-            </label>
+            <label className={labelClass}>Tags / Badges</label>
             <div className="flex space-x-2">
               <div className="relative flex-1">
                 <Tag className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -249,13 +261,17 @@ export const LeadModal: React.FC<LeadModalProps> = ({
                     }
                   }}
                   placeholder="e.g. Qualified, Contacted, Won"
-                  className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+                  className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${inputClass}`}
                 />
               </div>
               <button
                 type="button"
                 onClick={handleAddTag}
-                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-semibold border border-white/10"
+                className={`px-3 py-2 rounded-xl text-xs font-semibold border ${
+                  isDark
+                    ? 'bg-slate-800 hover:bg-slate-700 text-white border-white/10'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
+                }`}
               >
                 Add
               </button>
@@ -264,13 +280,17 @@ export const LeadModal: React.FC<LeadModalProps> = ({
               {tags.map((tag) => (
                 <span
                   key={tag}
-                  className="text-xs bg-slate-800 text-slate-200 px-2 py-0.5 rounded-md border border-white/10 flex items-center space-x-1"
+                  className={`text-xs px-2 py-0.5 rounded-md border flex items-center space-x-1 ${
+                    isDark
+                      ? 'bg-slate-800 text-slate-200 border-white/10'
+                      : 'bg-slate-100 text-slate-700 border-slate-200'
+                  }`}
                 >
                   <span>{tag}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveTag(tag)}
-                    className="text-slate-400 hover:text-rose-400 ml-1"
+                    className="text-slate-400 hover:text-rose-500 ml-1 font-bold"
                   >
                     ×
                   </button>
@@ -280,12 +300,16 @@ export const LeadModal: React.FC<LeadModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+          <div
+            className={`pt-4 border-t flex items-center justify-between ${
+              isDark ? 'border-white/10' : 'border-slate-200'
+            }`}
+          >
             {existingLead ? (
               <button
                 type="button"
                 onClick={handleDelete}
-                className="flex items-center space-x-1 text-xs text-rose-400 hover:text-rose-300 font-semibold transition-colors"
+                className="flex items-center space-x-1 text-xs text-rose-500 hover:text-rose-600 font-semibold transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>Delete Lead</span>
@@ -298,7 +322,11 @@ export const LeadModal: React.FC<LeadModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-xl transition-colors"
+                className={`px-4 py-2 text-xs font-semibold rounded-xl transition-colors ${
+                  isDark
+                    ? 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                }`}
               >
                 Cancel
               </button>
