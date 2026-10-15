@@ -10,7 +10,6 @@ import { LeadModal } from './components/LeadModal';
 import { 
   History, 
   ChevronDown, 
-  ArrowDown, 
   RotateCcw,
   SlidersHorizontal 
 } from 'lucide-react';
@@ -21,7 +20,7 @@ export default function App() {
   const resetToDefaultData = useCRMStore((s) => s.resetToDefaultData);
   const owners = useCRMStore(selectUniqueOwners);
 
-  const [isActivityOpen, setIsActivityOpen] = useState(true);
+  const [isActivityOpen, setIsActivityOpen] = useState(false);
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     leadId: string | null;
@@ -149,14 +148,12 @@ export default function App() {
           
           </div>
         </div>
-
-        {/* 3. Docked Right Activity History Panel */}
-        {isActivityOpen && (
-          <aside className="hidden md:block transition-all duration-300">
-            <ActivityHistoryPanel onClose={() => setIsActivityOpen(false)} />
-          </aside>
-        )}
       </div>
+
+      {/* 3. Slide-over Activity History Drawer */}
+      {isActivityOpen && (
+        <ActivityHistoryPanel onClose={() => setIsActivityOpen(false)} />
+      )}
 
       {/* 4. Lead Create / Edit Modal */}
       {modalState.isOpen && (

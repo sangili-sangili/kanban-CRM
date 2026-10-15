@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Search, Bell, Plus } from 'lucide-react';
+import { Search, Bell, Plus, Moon, Sun } from 'lucide-react';
 import { useCRMStore } from '../store/useCRMStore';
 
 interface HeaderProps {
@@ -9,6 +9,8 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onNewLeadClick }) => {
   const searchQuery = useCRMStore((s) => s.filters.searchQuery);
   const setFilters = useCRMStore((s) => s.setFilters);
+  const cardTheme = useCRMStore((s) => s.cardTheme);
+  const toggleCardTheme = useCRMStore((s) => s.toggleCardTheme);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Global Ctrl+K / Cmd+K shortcut listener
@@ -79,6 +81,27 @@ export const Header: React.FC<HeaderProps> = ({ onNewLeadClick }) => {
             />
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0E1526] rounded-full" />
           </div>
+
+          {/* Card Theme Toggle (Dark / Light) */}
+          <button
+            type="button"
+            onClick={toggleCardTheme}
+            title={cardTheme === 'dark' ? 'Switch to Light Card Theme' : 'Switch to Dark Card Theme'}
+            aria-label="Toggle card theme"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#172136]/80 hover:bg-[#1f2d47] border border-white/[0.08] text-xs font-semibold text-slate-300 hover:text-white transition-all shadow-sm"
+          >
+            {cardTheme === 'dark' ? (
+              <>
+                <Moon className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="hidden sm:inline">Dark Cards</span>
+              </>
+            ) : (
+              <>
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden sm:inline">Light Cards</span>
+              </>
+            )}
+          </button>
 
           {/* Notification Bell */}
           <button

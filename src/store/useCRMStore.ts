@@ -13,6 +13,7 @@ export interface CRMStoreState {
   selectedLeadId: string | null;
   isLeadModalOpen: boolean;
   isActivityDrawerOpen: boolean;
+  cardTheme: 'dark' | 'light';
 }
 
 /**
@@ -34,6 +35,8 @@ export interface CRMStoreActions {
   closeLeadModal: () => void;
   toggleActivityDrawer: () => void;
   setActivityDrawerOpen: (isOpen: boolean) => void;
+  toggleCardTheme: () => void;
+  setCardTheme: (theme: 'dark' | 'light') => void;
 
   // Reset / Seeding
   resetToDefaultData: () => void;
@@ -60,6 +63,7 @@ export const useCRMStore = create<CRMStore>()(
       selectedLeadId: null,
       isLeadModalOpen: false,
       isActivityDrawerOpen: false,
+      cardTheme: 'dark',
 
       // Actions
       addLead: (leadInput) => {
@@ -205,6 +209,16 @@ export const useCRMStore = create<CRMStore>()(
         set({ isActivityDrawerOpen: isOpen });
       },
 
+      toggleCardTheme: () => {
+        set((state) => ({
+          cardTheme: state.cardTheme === 'dark' ? 'light' : 'dark',
+        }));
+      },
+
+      setCardTheme: (theme) => {
+        set({ cardTheme: theme });
+      },
+
       resetToDefaultData: () => {
         set({
           leads: INITIAL_LEADS,
@@ -213,17 +227,19 @@ export const useCRMStore = create<CRMStore>()(
           selectedLeadId: null,
           isLeadModalOpen: false,
           isActivityDrawerOpen: false,
+          cardTheme: 'dark',
         });
       },
     }),
     {
       name: 'kanban-crm-storage-v1',
       storage: createJSONStorage(() => localStorage),
-      // Persist leads and activity logs; reset transient UI modals
+      // Persist leads, activity logs, and cardTheme; reset transient UI modals
       partialize: (state) => ({
         leads: state.leads,
         activityLogs: state.activityLogs,
         filters: state.filters,
+        cardTheme: state.cardTheme,
       }),
       // Fallback hydration guard: if localStorage is missing or array is empty, seed mock data
       onRehydrateStorage: () => (state) => {

@@ -112,20 +112,22 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-start w-full">
-        {PIPELINE_STAGES.map((stage) => {
-          const stageLeads = leadsByStage[stage.id] || [];
+      <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+        <div className="grid grid-flow-col auto-cols-[285px] xl:grid-flow-row xl:grid-cols-5 gap-4 items-start min-w-[285px]">
+          {PIPELINE_STAGES.map((stage) => {
+            const stageLeads = leadsByStage[stage.id] || [];
 
-          return (
-            <KanbanColumn
-              key={stage.id}
-              stage={stage}
-              leads={stageLeads}
-              onEditLead={onEditLead}
-              onAddLeadToStage={onAddLeadToStage}
-            />
-          );
-        })}
+            return (
+              <KanbanColumn
+                key={stage.id}
+                stage={stage}
+                leads={stageLeads}
+                onEditLead={onEditLead}
+                onAddLeadToStage={onAddLeadToStage}
+              />
+            );
+          })}
+        </div>
       </div>
 
       {/* Drag Overlay matching Figma preview */}
