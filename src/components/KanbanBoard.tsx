@@ -20,11 +20,15 @@ import { KanbanCard } from './KanbanCard';
 
 interface KanbanBoardProps {
   onEditLead: (lead: Lead) => void;
+  onViewDetails: (lead: Lead) => void;
+  onDeleteLead?: (leadId: string) => void;
   onAddLeadToStage: (stageId: StageId) => void;
 }
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onEditLead,
+  onViewDetails,
+  onDeleteLead,
   onAddLeadToStage,
 }) => {
   const leads = useCRMStore((s) => s.leads);
@@ -123,6 +127,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 stage={stage}
                 leads={stageLeads}
                 onEditLead={onEditLead}
+                onViewDetails={onViewDetails}
+                onDeleteLead={onDeleteLead}
                 onAddLeadToStage={onAddLeadToStage}
               />
             );

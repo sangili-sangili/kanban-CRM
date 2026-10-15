@@ -10,6 +10,8 @@ interface KanbanColumnProps {
   stage: StageConfig;
   leads: Lead[];
   onEditLead: (lead: Lead) => void;
+  onViewDetails: (lead: Lead) => void;
+  onDeleteLead?: (leadId: string) => void;
   onAddLeadToStage: (stageId: StageConfig['id']) => void;
 }
 
@@ -17,6 +19,8 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   stage,
   leads,
   onEditLead,
+  onViewDetails,
+  onDeleteLead,
 }) => {
   const theme = useCRMStore((s) => s.theme);
   const isDark = theme === 'dark';
@@ -112,7 +116,13 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
             </div>
           ) : (
             leads.map((lead) => (
-              <KanbanCard key={lead.id} lead={lead} onEdit={onEditLead} />
+              <KanbanCard
+                key={lead.id}
+                lead={lead}
+                onEdit={onEditLead}
+                onViewDetails={onViewDetails}
+                onDelete={onDeleteLead}
+              />
             ))
           )}
         </div>

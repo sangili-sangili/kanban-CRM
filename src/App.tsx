@@ -8,6 +8,7 @@ import { KanbanBoard } from './components/KanbanBoard';
 import { KanbanCard } from './components/KanbanCard';
 import { ActivityHistoryPanel } from './components/ActivityHistoryPanel';
 import { LeadModal } from './components/LeadModal';
+import { LeadDetailsModal } from './components/LeadDetailsModal';
 import { formatCurrency, formatRelativeTime } from './utils/cn';
 import { 
   History, 
@@ -26,6 +27,7 @@ import {
 export default function App() {
   const theme = useCRMStore((s) => s.theme);
   const toggleTheme = useCRMStore((s) => s.toggleTheme);
+  const deleteLead = useCRMStore((s) => s.deleteLead);
   const isDark = theme === 'dark';
 
   const filters = useCRMStore((s) => s.filters);
@@ -36,12 +38,16 @@ export default function App() {
   const leadsByStage = useCRMStore(selectLeadsByStage);
   const activityLogs = useCRMStore((s) => s.activityLogs);
 
-  // Activity History drawer state (starts closed by default as requested)
+  // Activity History drawer state (starts closed by default)
   const [isActivityOpen, setIsActivityOpen] = useState(false);
 
   // Mobile active stage tab switcher (matching Third Image Figma design)
   const [activeMobileStage, setActiveMobileStage] = useState<StageId>('CONTACTED');
 
+  // Lead Details Modal state
+  const [selectedLeadForDetails, setSelectedLeadForDetails] = useState<Lead | null>(null);
+
+  // Lead Edit/Create Modal state
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     leadId: string | null;
@@ -75,6 +81,14 @@ export default function App() {
     });
   };
 
+  const handleOpenLeadDetailsModal = (lead: Lead) => {
+    setSelectedLeadForDetails(lead);
+  };
+
+  const handleCloseLeadDetailsModal = () => {
+    setSelectedLeadForDetails(null);
+  };
+
   const currentMobileStageConfig = PIPELINE_STAGES.find((s) => s.id === activeMobileStage) || PIPELINE_STAGES[0];
   const currentMobileLeads = leadsByStage[activeMobileStage] || [];
 
@@ -88,7 +102,10 @@ export default function App() {
           DESKTOP HEADER (Screens md and up)
       ========================================================================= */}
       <div className="hidden md:block">
-        <Header onNewLeadClick={() => handleOpenNewLeadModal('NEW')} />
+        <Header 
+          onNewLeadClick={() => handleOpenNewLeadModal('NEW')} 
+          onOpenActivity={() => setIsActivityOpen(true)}
+        />
       </div>
 
       {/* =========================================================================
@@ -144,6 +161,7 @@ export default function App() {
             {/* Notification Bell */}
             <button
               type="button"
+              onClick={() => setIsActivityOpen(true)}
               className={`p-1.5 rounded-xl border relative ${
                 isDark
                   ? 'bg-slate-800/80 border-white/10 text-slate-300'
@@ -267,7 +285,7 @@ export default function App() {
               </h2>
               <button
                 onClick={resetToDefaultData}
-                title="Reset to default Figma data"
+                title="Reset to default Figma data (52 leads)"
                 className={`p-1.5 rounded-lg border transition-colors ${
                   isDark
                     ? 'text-slate-400 hover:text-white hover:bg-white/5 border-white/5'
@@ -347,12 +365,15 @@ export default function App() {
           <section className="hidden md:block pb-12">
             <KanbanBoard
               onEditLead={handleOpenEditLeadModal}
+              onViewDetails={handleOpenLeadDetailsModal}
+              onDeleteLead={deleteLead}
               onAddLeadToStage={handleOpenNewLeadModal}
             />
           </section>
 
           {/* =========================================================================
               MOBILE RESPONSIVE PIPELINE (Matching Third Image Figma Design)
+              Requirement 6: Active section shows ALL leads with smooth scroll
           ========================================================================= */}
           <section className="block md:hidden space-y-4 pb-12">
             {/* Horizontal Stage Tabs Bar */}
@@ -369,18 +390,18 @@ export default function App() {
                   <button
                     key={stage.id}
                     onClick={() => setActiveMobileStage(stage.id)}
-                    className={`flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                    className={`flex items-center space-x-1 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                       isActive
                         ? isDark
-                          ? 'bg-white text-slate-900 shadow-md scale-102'
+                          ? 'bg-white text-slate-900 shadow-md scale-102 ring-1 ring-white'
                           : 'bg-indigo-600 text-white shadow-md'
                         : isDark
-                        ? 'text-slate-400 hover:text-white bg-slate-900/40'
-                        : 'text-slate-600 hover:text-slate-900 bg-slate-100'
+                        ? 'text-slate-400 hover:text-white bg-slate-900/40 border border-white/5'
+                        : 'text-slate-600 hover:text-slate-900 bg-slate-100 border border-slate-200'
                     }`}
                   >
                     <span>{stage.label}</span>
-                    <span className="opacity-80">({stageCount})</span>
+                    <span className="opacity-75">({stageCount})</span>
                   </button>
                 );
               })}
@@ -411,13 +432,16 @@ export default function App() {
                     {currentMobileStageConfig.badgeLabel}
                   </span>
                 </div>
-                <MoreHorizontal className="w-4 h-4 text-slate-400" />
+                <div className="flex items-center space-x-2 text-xs text-slate-400">
+                  <span>{currentMobileLeads.length} leads</span>
+                  <MoreHorizontal className="w-4 h-4" />
+                </div>
               </div>
 
-              {/* Cards List */}
-              <div className="space-y-3">
+              {/* Cards List with dedicated smooth scrollable viewport (Requirement 6) */}
+              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1 overscroll-contain">
                 {currentMobileLeads.length === 0 ? (
-                  <div className="h-28 border border-dashed border-white/10 rounded-xl flex items-center justify-center text-xs text-slate-400">
+                  <div className="h-32 border border-dashed border-white/10 rounded-xl flex items-center justify-center text-xs text-slate-400">
                     No leads in this stage
                   </div>
                 ) : (
@@ -426,6 +450,8 @@ export default function App() {
                       key={lead.id}
                       lead={lead}
                       onEdit={handleOpenEditLeadModal}
+                      onViewDetails={handleOpenLeadDetailsModal}
+                      onDelete={deleteLead}
                     />
                   ))
                 )}
@@ -463,8 +489,8 @@ export default function App() {
               </div>
 
               {/* Timeline nodes */}
-              <div className="space-y-4 pt-1">
-                {activityLogs.slice(0, 4).map((log) => (
+              <div className="space-y-3.5 pt-1 max-h-56 overflow-y-auto pr-1">
+                {activityLogs.slice(0, 6).map((log) => (
                   <div key={log.id} className="flex items-start space-x-3 text-xs">
                     <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -502,6 +528,24 @@ export default function App() {
       ========================================================================= */}
       {isActivityOpen && (
         <ActivityHistoryPanel onClose={() => setIsActivityOpen(false)} />
+      )}
+
+      {/* =========================================================================
+          LEAD DETAILS MODAL (Full Dossier & View Mode)
+      ========================================================================= */}
+      {selectedLeadForDetails && (
+        <LeadDetailsModal
+          lead={selectedLeadForDetails}
+          onClose={handleCloseLeadDetailsModal}
+          onEdit={(lead) => {
+            setSelectedLeadForDetails(null);
+            handleOpenEditLeadModal(lead);
+          }}
+          onDelete={(leadId) => {
+            setSelectedLeadForDetails(null);
+            deleteLead(leadId);
+          }}
+        />
       )}
 
       {/* =========================================================================

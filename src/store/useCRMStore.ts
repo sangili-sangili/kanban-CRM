@@ -243,7 +243,7 @@ export const useCRMStore = create<CRMStore>()(
       },
     }),
     {
-      name: 'kanban-crm-storage-v1',
+      name: 'kanban-crm-storage-v2',
       storage: createJSONStorage(() => localStorage),
       // Persist leads, activity logs, and theme; reset transient UI modals
       partialize: (state) => ({
