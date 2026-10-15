@@ -28,7 +28,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
   const [title, setTitle] = useState('Face Badge');
   const [company, setCompany] = useState('');
   const [email, setEmail] = useState('');
-  const [dealValue, setDealValue] = useState<number>(50000);
+  const [dealValue, setDealValue] = useState<number | ''>(50000);
   const [stage, setStage] = useState<StageId>(defaultStageId);
   const [assignedOwner, setAssignedOwner] = useState('Sangili');
   const [tagInput, setTagInput] = useState('');
@@ -46,6 +46,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
       setTags(existingLead.tags || []);
     } else {
       setStage(defaultStageId);
+      setDealValue(50000);
     }
   }, [existingLead, defaultStageId]);
 
@@ -53,13 +54,15 @@ export const LeadModal: React.FC<LeadModalProps> = ({
     e.preventDefault();
     if (!name.trim()) return;
 
+    const numericDealValue = typeof dealValue === 'number' ? dealValue : (Number(dealValue) || 0);
+
     if (existingLead) {
       updateLead(existingLead.id, {
         name,
         title,
         company,
         email,
-        dealValue,
+        dealValue: numericDealValue,
         stage,
         assignedOwner,
         tags,
@@ -70,7 +73,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
         title,
         company: company || 'Enterprise Client',
         email: email || `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
-        dealValue,
+        dealValue: numericDealValue,
         stage,
         assignedOwner,
         tags,
@@ -175,10 +178,20 @@ export const LeadModal: React.FC<LeadModalProps> = ({
                 <input
                   type="number"
                   min="0"
-                  step="500"
+                  step="any"
+                  placeholder="0"
                   required
                   value={dealValue}
-                  onChange={(e) => setDealValue(Number(e.target.value))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '') {
+                      setDealValue('');
+                    } else {
+                      // Strip leading zeros if followed by numbers (e.g. 0222 -> 222)
+                      const cleanVal = val.replace(/^0+(?=\d)/, '');
+                      setDealValue(cleanVal === '' ? '' : Number(cleanVal));
+                    }
+                  }}
                   className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none font-semibold text-emerald-500 ${inputClass}`}
                 />
               </div>
