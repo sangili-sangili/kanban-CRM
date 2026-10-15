@@ -9,17 +9,19 @@
 export type StageId = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'WON' | 'LOST';
 
 /**
- * Core Lead entity containing sales deal details, contact info, and ownership.
+ * Core Lead entity matching the Figma design specifications.
  */
 export interface Lead {
   id: string;
   name: string;
   email: string;
   company: string;
+  title?: string;
   dealValue: number;
   stage: StageId;
   assignedOwner: string;
   avatarUrl?: string;
+  tags?: string[];
   createdAt: string; // ISO 8601 string
   updatedAt: string; // ISO 8601 string
 }
@@ -40,6 +42,7 @@ export interface ActivityLog {
   description: string;
   timestamp: string; // ISO 8601 string
   author: string;
+  badgeColor?: string;
 }
 
 /**
@@ -57,9 +60,11 @@ export interface CRMFilterState {
 export interface StageConfig {
   id: StageId;
   label: string;
+  badgeLabel: string;
   color: string;
-  accentBg: string;
-  badgeClass: string;
+  headerBorderColor: string;
+  pillBg: string;
+  pillText: string;
 }
 
 /**

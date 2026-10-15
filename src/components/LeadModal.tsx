@@ -1,0 +1,317 @@
+import React, { useState, useEffect } from 'react';
+import { useCRMStore } from '../store/useCRMStore';
+import { StageId } from '../types/crm';
+import { PIPELINE_STAGES } from '../data/mockData';
+import { X, Trash2, DollarSign, User, Building, Mail, Tag } from 'lucide-react';
+
+interface LeadModalProps {
+  leadId: string | null;
+  defaultStageId?: StageId;
+  onClose: () => void;
+}
+
+export const LeadModal: React.FC<LeadModalProps> = ({
+  leadId,
+  defaultStageId = 'NEW',
+  onClose,
+}) => {
+  const leads = useCRMStore((s) => s.leads);
+  const addLead = useCRMStore((s) => s.addLead);
+  const updateLead = useCRMStore((s) => s.updateLead);
+  const deleteLead = useCRMStore((s) => s.deleteLead);
+
+  const existingLead = leadId ? leads.find((l) => l.id === leadId) : null;
+
+  const [name, setName] = useState('');
+  const [title, setTitle] = useState('Face Badge');
+  const [company, setCompany] = useState('');
+  const [email, setEmail] = useState('');
+  const [dealValue, setDealValue] = useState<number>(50000);
+  const [stage, setStage] = useState<StageId>(defaultStageId);
+  const [assignedOwner, setAssignedOwner] = useState('Sangili');
+  const [tagInput, setTagInput] = useState('');
+  const [tags, setTags] = useState<string[]>(['New', 'Qualified']);
+
+  useEffect(() => {
+    if (existingLead) {
+      setName(existingLead.name);
+      setTitle(existingLead.title || 'Face Badge');
+      setCompany(existingLead.company);
+      setEmail(existingLead.email);
+      setDealValue(existingLead.dealValue);
+      setStage(existingLead.stage);
+      setAssignedOwner(existingLead.assignedOwner);
+      setTags(existingLead.tags || []);
+    } else {
+      setStage(defaultStageId);
+    }
+  }, [existingLead, defaultStageId]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    if (existingLead) {
+      updateLead(existingLead.id, {
+        name,
+        title,
+        company,
+        email,
+        dealValue,
+        stage,
+        assignedOwner,
+        tags,
+      });
+    } else {
+      addLead({
+        name,
+        title,
+        company: company || 'Enterprise Client',
+        email: email || `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+        dealValue,
+        stage,
+        assignedOwner,
+        tags,
+      });
+    }
+    onClose();
+  };
+
+  const handleAddTag = () => {
+    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+      setTags([...tags, tagInput.trim()]);
+      setTagInput('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter((t) => t !== tagToRemove));
+  };
+
+  const handleDelete = () => {
+    if (existingLead && window.confirm('Are you sure you want to delete this lead?')) {
+      deleteLead(existingLead.id);
+      onClose();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+      <div className="relative w-full max-w-lg bg-[#0F172A] border border-white/10 rounded-2xl shadow-2xl p-6 text-slate-100">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-4 border-b border-white/10">
+          <h2 className="text-lg font-bold text-white">
+            {existingLead ? 'Edit Sales Lead' : 'Create New Lead'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+              Lead / Contact Name
+            </label>
+            <div className="relative">
+              <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Sangili or Siela"
+                className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                Badge / Subtitle
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Face Badge"
+                className="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                Deal Value ($)
+              </label>
+              <div className="relative">
+                <DollarSign className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="number"
+                  min="0"
+                  step="500"
+                  required
+                  value={dealValue}
+                  onChange={(e) => setDealValue(Number(e.target.value))}
+                  className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500 font-semibold text-emerald-400"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                Pipeline Stage
+              </label>
+              <select
+                value={stage}
+                onChange={(e) => setStage(e.target.value as StageId)}
+                className="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+              >
+                {PIPELINE_STAGES.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                Assigned Owner
+              </label>
+              <select
+                value={assignedOwner}
+                onChange={(e) => setAssignedOwner(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+              >
+                <option value="Sangili">Sangili</option>
+                <option value="Matina">Matina</option>
+                <option value="Siela">Siela</option>
+                <option value="Alex">Alex</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+              Company
+            </label>
+            <div className="relative">
+              <Building className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder="Enterprise Corp"
+                className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+              Email
+            </label>
+            <div className="relative">
+              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="client@company.com"
+                className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+              Tags / Badges
+            </label>
+            <div className="flex space-x-2">
+              <div className="relative flex-1">
+                <Tag className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddTag();
+                    }
+                  }}
+                  placeholder="e.g. Qualified, Contacted, Won"
+                  className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleAddTag}
+                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-semibold border border-white/10"
+              >
+                Add
+              </button>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="text-xs bg-slate-800 text-slate-200 px-2 py-0.5 rounded-md border border-white/10 flex items-center space-x-1"
+                >
+                  <span>{tag}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="text-slate-400 hover:text-rose-400 ml-1"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+            {existingLead ? (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="flex items-center space-x-1 text-xs text-rose-400 hover:text-rose-300 font-semibold transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete Lead</span>
+              </button>
+            ) : (
+              <div />
+            )}
+
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl shadow-lg shadow-blue-600/25 transition-all"
+              >
+                {existingLead ? 'Save Changes' : 'Create Lead'}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
