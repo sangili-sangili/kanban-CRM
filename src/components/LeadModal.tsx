@@ -2,12 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useCRMStore } from '../store/useCRMStore';
 import { StageId } from '../types/crm';
 import { PIPELINE_STAGES } from '../data/mockData';
-import { X, Trash2, DollarSign, User, Building, Mail, Tag } from 'lucide-react';
+import { X, Trash2, DollarSign, User, Building, Mail, Tag, AlertCircle } from 'lucide-react';
 
 interface LeadModalProps {
   leadId: string | null;
   defaultStageId?: StageId;
   onClose: () => void;
+}
+
+interface FormErrors {
+  name?: string;
+  company?: string;
+  email?: string;
+  dealValue?: string;
 }
 
 export const LeadModal: React.FC<LeadModalProps> = ({
@@ -33,6 +40,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
   const [assignedOwner, setAssignedOwner] = useState('Sangili');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>(['New', 'Qualified']);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     if (existingLead) {
@@ -47,21 +55,52 @@ export const LeadModal: React.FC<LeadModalProps> = ({
     } else {
       setStage(defaultStageId);
       setDealValue(50000);
+      setName('');
+      setTitle('Face Badge');
+      setCompany('');
+      setEmail('');
+      setTags(['New', 'Qualified']);
     }
+    setErrors({});
   }, [existingLead, defaultStageId]);
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!name.trim()) {
+      newErrors.name = 'Contact name is required';
+    }
+
+    if (!company.trim()) {
+      newErrors.company = 'Company name is required';
+    }
+
+    if (!email.trim()) {
+      newErrors.email = 'Email address is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (dealValue === '' || isNaN(Number(dealValue)) || Number(dealValue) < 0) {
+      newErrors.dealValue = 'Valid deal value is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!validateForm()) return;
 
     const numericDealValue = typeof dealValue === 'number' ? dealValue : (Number(dealValue) || 0);
 
     if (existingLead) {
       updateLead(existingLead.id, {
-        name,
-        title,
-        company,
-        email,
+        name: name.trim(),
+        title: title.trim(),
+        company: company.trim(),
+        email: email.trim(),
         dealValue: numericDealValue,
         stage,
         assignedOwner,
@@ -69,10 +108,10 @@ export const LeadModal: React.FC<LeadModalProps> = ({
       });
     } else {
       addLead({
-        name,
-        title,
-        company: company || 'Enterprise Client',
-        email: email || `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+        name: name.trim(),
+        title: title.trim(),
+        company: company.trim(),
+        email: email.trim(),
         dealValue: numericDealValue,
         stage,
         assignedOwner,
@@ -100,18 +139,25 @@ export const LeadModal: React.FC<LeadModalProps> = ({
     }
   };
 
-  const inputClass = isDark
-    ? 'bg-slate-900 border border-white/10 text-white placeholder-slate-500 focus:border-indigo-500'
-    : 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:bg-white';
+  const getInputClass = (hasError?: boolean) => {
+    if (hasError) {
+      return isDark
+        ? 'bg-slate-900 border border-rose-500 text-white placeholder-slate-500 focus:border-rose-400 focus:ring-1 focus:ring-rose-500/25'
+        : 'bg-rose-50/30 border border-rose-500 text-slate-900 placeholder-slate-400 focus:border-rose-500 focus:bg-white focus:ring-1 focus:ring-rose-500/25';
+    }
+    return isDark
+      ? 'bg-slate-900 border border-white/10 text-white placeholder-slate-500 focus:border-indigo-500'
+      : 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:bg-white';
+  };
 
-  const labelClass = `block text-xs font-semibold uppercase tracking-wider mb-1 ${
+  const labelClass = `flex items-center text-xs font-semibold uppercase tracking-wider mb-1 ${
     isDark ? 'text-slate-300' : 'text-slate-600'
   }`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
       <div
-        className={`relative w-full max-w-lg rounded-2xl p-6 shadow-2xl transition-colors ${
+        className={`relative w-full max-w-lg rounded-2xl p-6 shadow-2xl transition-colors max-h-[92vh] overflow-y-auto ${
           isDark
             ? 'bg-[#0F172A] border border-white/10 text-slate-100'
             : 'bg-white border border-slate-200 text-slate-900 shadow-2xl'
@@ -119,17 +165,22 @@ export const LeadModal: React.FC<LeadModalProps> = ({
       >
         {/* Header */}
         <div
-          className={`flex items-center justify-between pb-4 border-b ${
+          className={`flex items-start justify-between pb-3 border-b ${
             isDark ? 'border-white/10' : 'border-slate-200'
           }`}
         >
-          <h2
-            className={`text-lg font-bold ${
-              isDark ? 'text-white' : 'text-slate-900'
-            }`}
-          >
-            {existingLead ? 'Edit Sales Lead' : 'Create New Lead'}
-          </h2>
+          <div>
+            <h2
+              className={`text-lg font-bold tracking-tight ${
+                isDark ? 'text-white' : 'text-slate-900'
+              }`}
+            >
+              {existingLead ? 'Edit Sales Lead' : 'Create New Lead'}
+            </h2>
+            <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Fields marked with <span className="text-rose-500 font-bold">*</span> are mandatory
+            </p>
+          </div>
           <button
             onClick={onClose}
             className={`p-1.5 rounded-lg transition-colors ${
@@ -143,36 +194,57 @@ export const LeadModal: React.FC<LeadModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="mt-4 space-y-4">
+          
+          {/* 1. Lead / Contact Name (Mandatory *) */}
           <div>
-            <label className={labelClass}>Lead / Contact Name</label>
+            <label className={labelClass}>
+              <span>Lead / Contact Name</span>
+              <span className="text-rose-500 font-bold ml-1 text-sm leading-none" title="Required field">*</span>
+            </label>
             <div className="relative">
               <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 required
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+                }}
                 placeholder="e.g. Sangili or Siela"
-                className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${inputClass}`}
+                className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${getInputClass(!!errors.name)}`}
               />
             </div>
+            {errors.name && (
+              <p className="text-rose-500 text-[11px] mt-1 flex items-center space-x-1 font-medium">
+                <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                <span>{errors.name}</span>
+              </p>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* 2. Badge & Deal Value Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>Badge / Subtitle</label>
+              <label className={labelClass}>
+                <span>Badge / Subtitle</span>
+                <span className="text-[10px] lowercase font-normal tracking-normal opacity-60 ml-1.5">(optional)</span>
+              </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Face Badge"
-                className={`w-full px-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${inputClass}`}
+                className={`w-full px-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${getInputClass()}`}
               />
             </div>
 
             <div>
-              <label className={labelClass}>Deal Value ($)</label>
+              <label className={labelClass}>
+                <span>Deal Value ($)</span>
+                <span className="text-rose-500 font-bold ml-1 text-sm leading-none" title="Required field">*</span>
+              </label>
               <div className="relative">
                 <DollarSign className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -184,6 +256,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
                   value={dealValue}
                   onChange={(e) => {
                     const val = e.target.value;
+                    if (errors.dealValue) setErrors((prev) => ({ ...prev, dealValue: undefined }));
                     if (val === '') {
                       setDealValue('');
                     } else {
@@ -192,19 +265,30 @@ export const LeadModal: React.FC<LeadModalProps> = ({
                       setDealValue(cleanVal === '' ? '' : Number(cleanVal));
                     }
                   }}
-                  className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none font-semibold text-emerald-500 ${inputClass}`}
+                  className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none font-semibold text-emerald-500 ${getInputClass(!!errors.dealValue)}`}
                 />
               </div>
+              {errors.dealValue && (
+                <p className="text-rose-500 text-[11px] mt-1 flex items-center space-x-1 font-medium">
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                  <span>{errors.dealValue}</span>
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* 3. Pipeline Stage & Assigned Owner (Both Mandatory *) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>Pipeline Stage</label>
+              <label className={labelClass}>
+                <span>Pipeline Stage</span>
+                <span className="text-rose-500 font-bold ml-1 text-sm leading-none" title="Required field">*</span>
+              </label>
               <select
                 value={stage}
+                required
                 onChange={(e) => setStage(e.target.value as StageId)}
-                className={`w-full px-3 py-2 rounded-xl text-sm focus:outline-none transition-all cursor-pointer ${inputClass}`}
+                className={`w-full px-3 py-2 rounded-xl text-sm focus:outline-none transition-all cursor-pointer ${getInputClass()}`}
               >
                 {PIPELINE_STAGES.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -215,11 +299,15 @@ export const LeadModal: React.FC<LeadModalProps> = ({
             </div>
 
             <div>
-              <label className={labelClass}>Assigned Owner</label>
+              <label className={labelClass}>
+                <span>Assigned Owner</span>
+                <span className="text-rose-500 font-bold ml-1 text-sm leading-none" title="Required field">*</span>
+              </label>
               <select
                 value={assignedOwner}
+                required
                 onChange={(e) => setAssignedOwner(e.target.value)}
-                className={`w-full px-3 py-2 rounded-xl text-sm focus:outline-none transition-all cursor-pointer ${inputClass}`}
+                className={`w-full px-3 py-2 rounded-xl text-sm focus:outline-none transition-all cursor-pointer ${getInputClass()}`}
               >
                 <option value="Sangili">Sangili</option>
                 <option value="Matina">Matina</option>
@@ -229,37 +317,68 @@ export const LeadModal: React.FC<LeadModalProps> = ({
             </div>
           </div>
 
+          {/* 4. Company (Mandatory *) */}
           <div>
-            <label className={labelClass}>Company</label>
+            <label className={labelClass}>
+              <span>Company</span>
+              <span className="text-rose-500 font-bold ml-1 text-sm leading-none" title="Required field">*</span>
+            </label>
             <div className="relative">
               <Building className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
+                required
                 value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                placeholder="Enterprise Corp"
-                className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${inputClass}`}
+                onChange={(e) => {
+                  setCompany(e.target.value);
+                  if (errors.company) setErrors((prev) => ({ ...prev, company: undefined }));
+                }}
+                placeholder="e.g. Acme Corp or Stripe"
+                className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${getInputClass(!!errors.company)}`}
               />
             </div>
+            {errors.company && (
+              <p className="text-rose-500 text-[11px] mt-1 flex items-center space-x-1 font-medium">
+                <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                <span>{errors.company}</span>
+              </p>
+            )}
           </div>
 
+          {/* 5. Email (Mandatory *) */}
           <div>
-            <label className={labelClass}>Email</label>
+            <label className={labelClass}>
+              <span>Email</span>
+              <span className="text-rose-500 font-bold ml-1 text-sm leading-none" title="Required field">*</span>
+            </label>
             <div className="relative">
               <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="email"
+                required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+                }}
                 placeholder="client@company.com"
-                className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${inputClass}`}
+                className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${getInputClass(!!errors.email)}`}
               />
             </div>
+            {errors.email && (
+              <p className="text-rose-500 text-[11px] mt-1 flex items-center space-x-1 font-medium">
+                <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                <span>{errors.email}</span>
+              </p>
+            )}
           </div>
 
-          {/* Tags */}
+          {/* 6. Tags / Badges (Optional) */}
           <div>
-            <label className={labelClass}>Tags / Badges</label>
+            <label className={labelClass}>
+              <span>Tags / Badges</span>
+              <span className="text-[10px] lowercase font-normal tracking-normal opacity-60 ml-1.5">(optional)</span>
+            </label>
             <div className="flex space-x-2">
               <div className="relative flex-1">
                 <Tag className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -274,7 +393,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
                     }
                   }}
                   placeholder="e.g. Qualified, Contacted, Won"
-                  className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${inputClass}`}
+                  className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm focus:outline-none transition-all ${getInputClass()}`}
                 />
               </div>
               <button

@@ -9,6 +9,7 @@ import { KanbanCard } from './components/KanbanCard';
 import { ActivityHistoryPanel } from './components/ActivityHistoryPanel';
 import { LeadModal } from './components/LeadModal';
 import { LeadDetailsModal } from './components/LeadDetailsModal';
+import { Footer } from './components/Footer';
 import { formatCurrency, formatRelativeTime } from './utils/cn';
 import { 
   History, 
@@ -767,6 +768,9 @@ export default function App() {
 
         </div>
       </main>
+
+      {/* Enterprise Status & Productivity Utility Footer */}
+      <Footer />
 
       {/* =========================================================================
           SLIDE-OVER ACTIVITY HISTORY DRAWER (Isolated Scroll & Overlay)
