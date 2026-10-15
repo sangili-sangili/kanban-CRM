@@ -13,7 +13,6 @@ import { formatCurrency, formatRelativeTime } from './utils/cn';
 import { 
   History, 
   ChevronDown, 
-  RotateCcw,
   SlidersHorizontal,
   Bell,
   Plus,
@@ -32,7 +31,6 @@ export default function App() {
 
   const filters = useCRMStore((s) => s.filters);
   const setFilters = useCRMStore((s) => s.setFilters);
-  const resetToDefaultData = useCRMStore((s) => s.resetToDefaultData);
   const owners = useCRMStore(selectUniqueOwners);
   const metrics = useCRMStore(selectMetrics);
   const leadsByStage = useCRMStore(selectLeadsByStage);
@@ -283,17 +281,6 @@ export default function App() {
               >
                 Kanban Pipeline
               </h2>
-              <button
-                onClick={resetToDefaultData}
-                title="Reset to default Figma data (52 leads)"
-                className={`p-1.5 rounded-lg border transition-colors ${
-                  isDark
-                    ? 'text-slate-400 hover:text-white hover:bg-white/5 border-white/5'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200 border-slate-200'
-                }`}
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
             </div>
 
             {/* Desktop Action Toolbar Matching Figma */}

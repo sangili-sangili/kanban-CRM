@@ -80,9 +80,10 @@ export const useCRMStore = create<CRMStore>()(
           leadId: newLead.id,
           leadName: newLead.name,
           action: 'CREATED',
-          description: `Created new lead at ${newLead.company} valued at $${newLead.dealValue.toLocaleString()} in stage [${newLead.stage}]`,
+          description: `Created new deal for ${newLead.company} valued at $${newLead.dealValue.toLocaleString()} in [${newLead.stage}]`,
           timestamp: now,
           author: newLead.assignedOwner || 'System',
+          badgeColor: 'teal',
         };
 
         set((state) => ({
@@ -109,9 +110,10 @@ export const useCRMStore = create<CRMStore>()(
           leadId: lead.id,
           leadName: updatedLead.name,
           action: 'UPDATED',
-          description: `Updated lead details (${Object.keys(updates).join(', ')})`,
+          description: `Updated deal details for ${updatedLead.company} ($${updatedLead.dealValue.toLocaleString()})`,
           timestamp: now,
           author: updatedLead.assignedOwner || 'System',
+          badgeColor: 'orange',
         };
 
         set((state) => ({
@@ -140,9 +142,10 @@ export const useCRMStore = create<CRMStore>()(
           leadId: lead.id,
           leadName: lead.name,
           action: 'STAGE_CHANGED',
-          description: `Moved from [${oldStage}] to [${targetStage}] by ${author}`,
+          description: `Moved deal from [${oldStage}] to [${targetStage}] — ${lead.company} ($${lead.dealValue.toLocaleString()})`,
           timestamp: now,
           author,
+          badgeColor: targetStage === 'WON' ? 'emerald' : targetStage === 'LOST' ? 'rose' : 'blue',
         };
 
         // Optimistic UI state update
@@ -162,9 +165,10 @@ export const useCRMStore = create<CRMStore>()(
           leadId: lead.id,
           leadName: lead.name,
           action: 'DELETED',
-          description: `Deleted lead ${lead.name} (${lead.company}) from pipeline`,
+          description: `Removed lead ${lead.name} (${lead.company}) from pipeline`,
           timestamp: now,
           author: lead.assignedOwner || 'System',
+          badgeColor: 'rose',
         };
 
         set((state) => ({
@@ -243,7 +247,7 @@ export const useCRMStore = create<CRMStore>()(
       },
     }),
     {
-      name: 'kanban-crm-storage-v2',
+      name: 'kanban-crm-storage-v3',
       storage: createJSONStorage(() => localStorage),
       // Persist leads, activity logs, and theme; reset transient UI modals
       partialize: (state) => ({

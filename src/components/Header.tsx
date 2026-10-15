@@ -15,47 +15,12 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import { useCRMStore } from '../store/useCRMStore';
+import { formatRelativeTime } from '../utils/cn';
 
 interface HeaderProps {
   onNewLeadClick: () => void;
   onOpenActivity?: () => void;
 }
-
-interface NotificationItem {
-  id: string;
-  title: string;
-  desc: string;
-  time: string;
-  type: 'success' | 'info' | 'alert';
-  read: boolean;
-}
-
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: 'notif-1',
-    title: 'Closed Enterprise Deal',
-    desc: 'Ethan Hunt signed Mission Critical contract for $165,000',
-    time: '10m ago',
-    type: 'success',
-    read: false,
-  },
-  {
-    id: 'notif-2',
-    title: 'Lead Qualified',
-    desc: 'Siela promoted Quantum BioLabs to Qualified stage',
-    time: '45m ago',
-    type: 'info',
-    read: false,
-  },
-  {
-    id: 'notif-3',
-    title: 'High-Value Inbound',
-    desc: 'NovaSphere Cloud Solutions inquiry logged ($125,000)',
-    time: '2h ago',
-    type: 'alert',
-    read: false,
-  },
-];
 
 export const Header: React.FC<HeaderProps> = ({ onNewLeadClick, onOpenActivity }) => {
   const searchQuery = useCRMStore((s) => s.filters.searchQuery);
@@ -66,8 +31,47 @@ export const Header: React.FC<HeaderProps> = ({ onNewLeadClick, onOpenActivity }
 
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const activityLogs = useCRMStore((s) => s.activityLogs);
+  const [readLogIds, setReadLogIds] = useState<Set<string>>(new Set());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Derive notifications directly from live CRM store activity logs
+  const notifications = activityLogs.slice(0, 8).map((log) => {
+    let type: 'success' | 'info' | 'alert' = 'info';
+    let title = `${log.leadName}`;
+
+    if (log.action === 'STAGE_CHANGED') {
+      if (log.description.includes('WON')) {
+        type = 'success';
+        title = `Deal Won · ${log.leadName}`;
+      } else if (log.description.includes('LOST')) {
+        type = 'alert';
+        title = `Deal Lost · ${log.leadName}`;
+      } else {
+        type = 'info';
+        title = `Stage Moved · ${log.leadName}`;
+      }
+    } else if (log.action === 'CREATED') {
+      type = 'info';
+      title = `New Lead · ${log.leadName}`;
+    } else if (log.action === 'DELETED') {
+      type = 'alert';
+      title = `Lead Removed · ${log.leadName}`;
+    } else {
+      type = 'info';
+      title = `Lead Updated · ${log.leadName}`;
+    }
+
+    return {
+      id: log.id,
+      title,
+      desc: log.description,
+      time: formatRelativeTime(log.timestamp),
+      type,
+      read: readLogIds.has(log.id),
+      author: log.author,
+    };
+  });
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -102,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({ onNewLeadClick, onOpenActivity }
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const markAllAsRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, read: true })));
+    setReadLogIds(new Set(activityLogs.map((l) => l.id)));
   };
 
   const handleLogout = () => {

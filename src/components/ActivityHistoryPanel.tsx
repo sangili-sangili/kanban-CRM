@@ -141,20 +141,34 @@ export const ActivityHistoryPanel: React.FC<ActivityHistoryPanelProps> = ({ onCl
 
                   {/* Text details */}
                   <div className="flex-1 min-w-0 pt-0.5">
-                    <span
-                      className={`text-[11px] font-medium block mb-0.5 ${
-                        isDark ? 'text-slate-400' : 'text-slate-500'
-                      }`}
-                    >
-                      {formatRelativeTime(log.timestamp)}
-                    </span>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <h4
+                        className={`text-xs font-bold truncate ${
+                          isDark ? 'text-white' : 'text-slate-900'
+                        }`}
+                      >
+                        {log.leadName}
+                      </h4>
+                      <span
+                        className={`text-[10px] font-medium flex-shrink-0 ml-2 ${
+                          isDark ? 'text-slate-400' : 'text-slate-500'
+                        }`}
+                      >
+                        {formatRelativeTime(log.timestamp)}
+                      </span>
+                    </div>
                     <p
                       className={`text-xs font-normal leading-snug break-words ${
-                        isDark ? 'text-slate-200' : 'text-slate-800'
+                        isDark ? 'text-slate-300' : 'text-slate-700'
                       }`}
                     >
                       {log.description}
                     </p>
+                    {log.author && (
+                      <span className="text-[10px] text-slate-400 block mt-1">
+                        By {log.author}
+                      </span>
+                    )}
                   </div>
                 </div>
               );

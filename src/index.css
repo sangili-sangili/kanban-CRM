@@ -35,6 +35,25 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* Thin sleek scrollbar for Kanban column internal scrolling */
+  .kanban-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+  }
+  .kanban-scrollbar::-webkit-scrollbar {
+    width: 5px;
+  }
+  .kanban-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .kanban-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.25);
+    border-radius: 9999px;
+  }
+  .kanban-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.5);
+  }
 }
 
 @layer components {
