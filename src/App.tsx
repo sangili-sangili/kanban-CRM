@@ -425,8 +425,8 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Cards List with dedicated smooth scrollable viewport (Requirement 6) */}
-              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1 overscroll-contain">
+              {/* Cards List with dedicated smooth scrollable viewport */}
+              <div className="space-y-3 max-h-[660px] overflow-y-auto pr-1 overscroll-contain">
                 {currentMobileLeads.length === 0 ? (
                   <div className="h-32 border border-dashed border-white/10 rounded-xl flex items-center justify-center text-xs text-slate-400">
                     No leads in this stage

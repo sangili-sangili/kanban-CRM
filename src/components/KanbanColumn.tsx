@@ -102,7 +102,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
       }}
       className={`
         flex flex-col rounded-2xl border transition-all duration-200
-        min-w-[270px] w-full h-[calc(100vh-270px)] min-h-[560px] max-h-[840px] p-3.5 shadow-lg
+        min-w-[270px] w-full min-h-[780px] xl:min-h-[840px] 2xl:min-h-[900px] h-[calc(100vh-140px)] max-h-[1050px] p-3.5 shadow-lg
         ${
           isDark
             ? isOver
